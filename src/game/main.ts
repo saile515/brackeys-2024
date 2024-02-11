@@ -49,6 +49,10 @@ async function game() {
     function update() {
         scene.draw();
 
+        key_hole[1].position = new Twodo.Vector2(-scene.input.mouse.position.x / 2, -scene.input.mouse.position.y / 2);
+
+        background[1].position = new Twodo.Vector2(scene.input.mouse.position.x * 8, scene.input.mouse.position.y * 4);
+
         requestAnimationFrame(update);
     }
 
