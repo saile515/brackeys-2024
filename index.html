@@ -4,10 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <link rel="stylesheet" type="text/css" href="src/index.css" />
+    <title>Brackeys 2024</title>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <canvas id="game_canvas" class="w-full h-screen"></canvas>
+    <div class="z-10 fixed w-full h-full top-0 left-0">
+        <button id="exit_backroom" class="hidden p-4 m-4 bg-red-400 opacity-80 text-lg">Exit</button>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
