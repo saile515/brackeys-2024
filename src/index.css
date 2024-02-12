@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .inventory-item {
+        @apply w-16 h-16 text-zinc-50 bg-zinc-700 bg-opacity-60;
+    }
+}

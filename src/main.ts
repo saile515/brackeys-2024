@@ -1,7 +1,10 @@
 import * as Twodo from "twodo";
 
-class KeyHole extends Twodo.Component {}
+// Views
 class Backroom extends Twodo.Component {}
+class Frontroom extends Twodo.Component {}
+
+// Utility
 class Interactable extends Twodo.Component {
     private _callbacks: ((...args: any[]) => any)[] = [];
 
@@ -14,6 +17,18 @@ class Interactable extends Twodo.Component {
     }
 }
 
+function show_view(view: new () => Twodo.Component) {
+    scene.ecs.query<[Twodo.Component, Twodo.Sprite]>([view, Twodo.Sprite]).forEach(([, sprite]) => {
+        sprite.hidden = false;
+    });
+}
+
+function hide_view(view: new () => Twodo.Component) {
+    scene.ecs.query<[Twodo.Component, Twodo.Sprite]>([view, Twodo.Sprite]).forEach(([, sprite]) => {
+        sprite.hidden = true;
+    });
+}
+
 // Scene setup
 const canvas = document.getElementById("game_canvas") as HTMLCanvasElement;
 const scene = new Twodo.Scene(canvas!);
@@ -24,6 +39,48 @@ const camera = scene.ecs.create_entity<Twodo.CameraBundle>([
 
 scene.active_camera = camera;
 
+// Inventory
+const inventory_target = {
+    card: false,
+    receipt: false,
+    tape: false,
+    stick: false,
+    screwdriver: false,
+    key: false,
+};
+
+const inventory_callbacks: Twodo.Callback[] = [];
+
+const inventory = new Proxy(inventory_target, {
+    set(object, item, value) {
+        object[item as keyof typeof object] = value;
+
+        inventory_callbacks.forEach((callback) => callback());
+        return true;
+    },
+});
+
+const inventory_element = document.getElementById("inventory")!;
+
+let selected_item: keyof typeof inventory | null = null;
+
+inventory_callbacks.push(() => {
+    for (let item in inventory) {
+        if (inventory[item as keyof typeof inventory] == true) {
+            inventory_element.innerHTML = "";
+            const item_element = document.createElement("button");
+            item_element.innerText = item;
+            item_element.classList.add("inventory-item");
+            item_element.onclick = () => {
+                selected_item = item as keyof typeof inventory;
+            };
+            inventory_element.appendChild(item_element);
+        }
+    }
+});
+
+// ------------------- Entities ------------------- //
+
 // Backroom
 const backroom = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprite]>([
     new Backroom(),
@@ -33,44 +90,90 @@ const backroom = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprit
 
 backroom[1].depth = 1;
 backroom[1].scale = new Twodo.Vector2(32, 18);
-backroom[2].hidden = true;
 
 // Key hole
-const key_hole = scene.ecs.create_entity<[KeyHole, Twodo.Transform, Twodo.Sprite]>([
-    new KeyHole(),
+const key_hole = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprite]>([
+    new Backroom(),
     new Twodo.Transform(),
     new Twodo.Sprite("./keyhole.png"),
 ]);
 
 key_hole[1].depth = 0;
 key_hole[1].scale = new Twodo.Vector2(32, 18);
-key_hole[2].hidden = true;
+
+hide_view(Backroom);
+
+// Frontroom
+const front_room = scene.ecs.create_entity<[Frontroom, Twodo.Transform, Twodo.Sprite]>([
+    new Frontroom(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./frontroom.jpg"),
+]);
+
+front_room[1].scale = new Twodo.Vector2(26, 14);
 
 // Door
 const exit_backroom = document.getElementById("exit_backroom")!;
-const door = scene.ecs.create_entity<[Interactable, Twodo.Transform, Twodo.Sprite]>([
+const door = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    new Frontroom(),
     new Interactable(),
     new Twodo.Transform(),
     new Twodo.Sprite("./door.png"),
 ]);
 
-door[1].scale = new Twodo.Vector2(4, 6);
+door[2].position = new Twodo.Vector2(0, -0.7);
+door[2].scale = new Twodo.Vector2(6, 8);
 
-door[0].register_callback(() => {
-    key_hole[2].hidden = false;
-    backroom[2].hidden = false;
+door[1].register_callback(() => {
+    show_view(Backroom);
 
-    door[2].hidden = true;
+    hide_view(Frontroom);
     exit_backroom.classList.remove("hidden");
 });
 
 exit_backroom.onclick = () => {
-    key_hole[2].hidden = true;
-    backroom[2].hidden = true;
+    hide_view(Backroom);
 
-    door[2].hidden = false;
+    show_view(Frontroom);
     exit_backroom.classList.add("hidden");
 };
+
+// Card
+const card = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    new Frontroom(),
+    new Interactable(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./card.png"),
+]);
+
+card[2].position = new Twodo.Vector2(-4, -5.5);
+card[2].scale = new Twodo.Vector2(0.4, 0.6);
+card[2].rotation = -80;
+
+card[1].register_callback(() => {
+    inventory.card = true;
+    card[3].hidden = true;
+});
+
+// Card terminal
+const card_terminal = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    new Frontroom(),
+    new Interactable(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./card-terminal.jpg"),
+]);
+
+card_terminal[2].position = new Twodo.Vector2(5, 5);
+card_terminal[2].rotation = -60;
+
+card_terminal[1].register_callback(() => {
+    console.log(selected_item);
+    if (selected_item == "card") {
+        inventory.receipt = true;
+    }
+});
+
+// ------------------ !Entities ------------------- //
 
 // Handle clicking
 scene.input.mouse.register_callback("left_click", () => {
@@ -98,9 +201,9 @@ function update() {
     scene.draw();
 
     if (!key_hole[2].hidden) {
-        key_hole[1].position = new Twodo.Vector2(-scene.input.mouse.position.x / 2, -scene.input.mouse.position.y / 2);
+        key_hole[1].position = new Twodo.Vector2(-scene.input.mouse.position.x / 2, scene.input.mouse.position.y / 2);
 
-        backroom[1].position = new Twodo.Vector2(scene.input.mouse.position.x * 8, scene.input.mouse.position.y * 4);
+        backroom[1].position = new Twodo.Vector2(scene.input.mouse.position.x * 8, -scene.input.mouse.position.y * 4);
     }
 
     requestAnimationFrame(update);
