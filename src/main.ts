@@ -3,31 +3,57 @@ import * as Twodo from "twodo";
 // Views
 class Backroom extends Twodo.Component {}
 class Frontroom extends Twodo.Component {}
+class CardTerminal extends Twodo.Component {}
 
 // Utility
 class Interactable extends Twodo.Component {
     private _callbacks: ((...args: any[]) => any)[] = [];
+    disabled = false;
 
     register_callback(callback: Twodo.Callback) {
         this._callbacks.push(callback);
     }
 
     trigger() {
+        if (this.disabled) {
+            return;
+        }
+
         this._callbacks.forEach((callback) => callback());
     }
 }
 
 function show_view(view: new () => Twodo.Component) {
+    // Reset state
+    scene.ecs.query<[Twodo.Sprite]>([Twodo.Sprite]).forEach(([sprite]) => {
+        sprite.hidden = true;
+    });
+
+    scene.ecs.query<[Interactable]>([Interactable]).forEach(([interactable]) => {
+        interactable.disabled = true;
+    });
+
+    // Turn on elements in view
     scene.ecs.query<[Twodo.Component, Twodo.Sprite]>([view, Twodo.Sprite]).forEach(([, sprite]) => {
         sprite.hidden = false;
     });
+
+    scene.ecs.query<[Twodo.Component, Interactable]>([view, Interactable]).forEach(([, interactable]) => {
+        interactable.disabled = false;
+    });
+
+    if (view == Frontroom) {
+        exit_view.classList.add("hidden");
+    } else {
+        exit_view.classList.remove("hidden");
+    }
 }
 
-function hide_view(view: new () => Twodo.Component) {
-    scene.ecs.query<[Twodo.Component, Twodo.Sprite]>([view, Twodo.Sprite]).forEach(([, sprite]) => {
-        sprite.hidden = true;
-    });
-}
+const exit_view = document.getElementById("exit_view")!;
+
+exit_view.onclick = () => {
+    show_view(Frontroom);
+};
 
 // Scene setup
 const canvas = document.getElementById("game_canvas") as HTMLCanvasElement;
@@ -130,7 +156,7 @@ inventory_callbacks.push(() => {
 
 // ------------------- Entities ------------------- //
 
-// Backroom
+// ------------------- Backroom ------------------- //
 const backroom = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprite]>([
     new Backroom(),
     new Twodo.Transform(),
@@ -150,9 +176,7 @@ const key_hole = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprit
 key_hole[1].depth = 0;
 key_hole[1].scale = new Twodo.Vector2(32, 18);
 
-hide_view(Backroom);
-
-// Frontroom
+// ------------------ Frontroom ------------------- //
 const front_room = scene.ecs.create_entity<[Frontroom, Twodo.Transform, Twodo.Sprite]>([
     new Frontroom(),
     new Twodo.Transform(),
@@ -162,7 +186,6 @@ const front_room = scene.ecs.create_entity<[Frontroom, Twodo.Transform, Twodo.Sp
 front_room[1].scale = new Twodo.Vector2(26, 14);
 
 // Door
-const exit_backroom = document.getElementById("exit_backroom")!;
 const door = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
     new Frontroom(),
     new Interactable(),
@@ -175,17 +198,7 @@ door[2].scale = new Twodo.Vector2(6, 8);
 
 door[1].register_callback(() => {
     show_view(Backroom);
-
-    hide_view(Frontroom);
-    exit_backroom.classList.remove("hidden");
 });
-
-exit_backroom.onclick = () => {
-    hide_view(Backroom);
-
-    show_view(Frontroom);
-    exit_backroom.classList.add("hidden");
-};
 
 // Card
 const card = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
@@ -216,11 +229,54 @@ card_terminal[2].position = new Twodo.Vector2(5, 5);
 card_terminal[2].rotation = -60;
 
 card_terminal[1].register_callback(() => {
-    if (inventory.selected_item == "card") {
-        inventory.items.card = false;
-        inventory.items.receipt = true;
-    }
+    show_view(CardTerminal);
 });
+
+// Candelabra
+const candelabra = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    new Frontroom(),
+    new Interactable(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./candelabra.png"),
+]);
+
+candelabra[2].position = new Twodo.Vector2(6, -5);
+candelabra[2].scale = new Twodo.Vector2(3, 3);
+// ---------------- Card terminal ----------------- //
+const card_terminal_large = scene.ecs.create_entity<[CardTerminal, Twodo.Transform, Twodo.Sprite]>([
+    new CardTerminal(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./card_terminal_large.png"),
+]);
+
+card_terminal_large[1].scale = new Twodo.Vector2(10, 10);
+
+class CardTerminalButton extends Twodo.Component {
+    digit: number;
+
+    constructor(digit: number) {
+        super();
+        this.digit = digit;
+    }
+}
+
+for (let x = 0; x < 3; x++) {
+    for (let y = 0; y < 3; y++) {
+        const card_terminal_button = scene.ecs.create_entity<
+            [CardTerminal, CardTerminalButton, Interactable, Twodo.Transform]
+        >([new CardTerminal(), new CardTerminalButton((2 - y) * 3 + x + 1), new Interactable(), new Twodo.Transform()]);
+
+        card_terminal_button[3].position = new Twodo.Vector2(x - 1, y - 1);
+    }
+}
+
+scene.ecs
+    .query<[CardTerminalButton, Interactable]>([CardTerminalButton, Interactable])
+    .forEach(([button, interactable]) => {
+        interactable.register_callback(() => {
+            // console.log(button.digit);
+        });
+    });
 
 // ------------------ !Entities ------------------- //
 
@@ -245,6 +301,8 @@ scene.input.mouse.register_callback("left_click", () => {
             }
         });
 });
+
+show_view(Frontroom);
 
 function update() {
     scene.draw();
