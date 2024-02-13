@@ -60,8 +60,9 @@ const inventory_target: {
 
 const inventory_callbacks: Twodo.Callback[] = [];
 
-// Typescript spaget
+// Detects changes to inventory and runs callbacks
 const inventory = new Proxy(inventory_target, {
+    // Typescript spaget
     get(object, item) {
         if (typeof object[item as keyof typeof object] == "object" && object[item as keyof typeof object] != null) {
             return new Proxy(object[item as keyof typeof object] as Items, this as ProxyHandler<Items>);
@@ -80,9 +81,12 @@ const inventory = new Proxy(inventory_target, {
 const inventory_element = document.getElementById("inventory")!;
 
 inventory_callbacks.push(() => {
+    // Clear inventory element
+    inventory_element.innerHTML = "";
+
     for (let item in inventory.items) {
+        // Add item to hotbar if in inventory
         if (inventory.items[item as keyof Items] == true) {
-            inventory_element.innerHTML = "";
             const item_element = document.createElement("button");
 
             item_element.innerText = item;
@@ -94,14 +98,17 @@ inventory_callbacks.push(() => {
 
             item_element.onclick = () => {
                 if (item == inventory.selected_item) {
+                    // Deselect if selected
                     inventory.selected_item = null;
 
                     Array.from(document.getElementsByClassName("item_preview")).forEach((element) => {
                         element.remove();
                     });
                 } else {
+                    // Select if not selected
                     inventory.selected_item = item as keyof Items;
 
+                    // Show item preview if item is previewable
                     if (item == "receipt") {
                         const item_preview = document.createElement("div");
                         const item_image = document.createElement("img");
@@ -194,7 +201,7 @@ card[2].rotation = -80;
 
 card[1].register_callback(() => {
     inventory.items.card = true;
-    card[3].hidden = true;
+    scene.ecs.delete_entity(card[0].parent!);
 });
 
 // Card terminal
@@ -210,6 +217,7 @@ card_terminal[2].rotation = -60;
 
 card_terminal[1].register_callback(() => {
     if (inventory.selected_item == "card") {
+        inventory.items.card = false;
         inventory.items.receipt = true;
     }
 });
@@ -241,6 +249,7 @@ scene.input.mouse.register_callback("left_click", () => {
 function update() {
     scene.draw();
 
+    // Key hole look controls
     if (!key_hole[2].hidden) {
         key_hole[1].position = new Twodo.Vector2(-scene.input.mouse.position.x / 2, scene.input.mouse.position.y / 2);
 
