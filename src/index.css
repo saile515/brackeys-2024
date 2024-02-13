@@ -4,10 +4,18 @@
 
 @layer components {
     .inventory-item {
-        @apply w-16 h-16 text-zinc-50 bg-zinc-700 bg-opacity-60;
+        @apply w-16 h-16 text-zinc-50 bg-zinc-700 bg-opacity-60 z-20;
     }
 
     .selected-item {
         @apply border-2;
+    }
+
+    .item-preview {
+        @apply fixed top-0 left-0 w-full h-full flex justify-center items-center pointer-events-none bg-zinc-900 bg-opacity-70;
+    }
+
+    .item-preview img {
+        @apply h-3/4;
     }
 }

@@ -95,8 +95,25 @@ inventory_callbacks.push(() => {
             item_element.onclick = () => {
                 if (item == inventory.selected_item) {
                     inventory.selected_item = null;
+
+                    Array.from(document.getElementsByClassName("item_preview")).forEach((element) => {
+                        element.remove();
+                    });
                 } else {
                     inventory.selected_item = item as keyof Items;
+
+                    if (item == "receipt") {
+                        const item_preview = document.createElement("div");
+                        const item_image = document.createElement("img");
+
+                        item_image.src = `./${item}.png`;
+
+                        item_preview.appendChild(item_image);
+
+                        item_preview.classList.add("item-preview");
+
+                        inventory_element.appendChild(item_preview);
+                    }
                 }
             };
             inventory_element.appendChild(item_element);
