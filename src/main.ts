@@ -40,18 +40,35 @@ const camera = scene.ecs.create_entity<Twodo.CameraBundle>([
 scene.active_camera = camera;
 
 // Inventory
-const inventory_target = {
-    card: false,
-    receipt: false,
-    tape: false,
-    stick: false,
-    screwdriver: false,
-    key: false,
+
+type Items = { card: boolean; receipt: boolean; tape: boolean; stick: boolean; screwdriver: boolean; key: boolean };
+
+const inventory_target: {
+    items: Items;
+    selected_item: keyof Items | null;
+} = {
+    items: {
+        card: false,
+        receipt: false,
+        tape: false,
+        stick: false,
+        screwdriver: false,
+        key: false,
+    },
+    selected_item: null,
 };
 
 const inventory_callbacks: Twodo.Callback[] = [];
 
+// Typescript spaget
 const inventory = new Proxy(inventory_target, {
+    get(object, item) {
+        if (typeof object[item as keyof typeof object] == "object" && object[item as keyof typeof object] != null) {
+            return new Proxy(object[item as keyof typeof object] as Items, this as ProxyHandler<Items>);
+        } else {
+            return object[item as keyof typeof object];
+        }
+    },
     set(object, item, value) {
         object[item as keyof typeof object] = value;
 
@@ -62,17 +79,25 @@ const inventory = new Proxy(inventory_target, {
 
 const inventory_element = document.getElementById("inventory")!;
 
-let selected_item: keyof typeof inventory | null = null;
-
 inventory_callbacks.push(() => {
-    for (let item in inventory) {
-        if (inventory[item as keyof typeof inventory] == true) {
+    for (let item in inventory.items) {
+        if (inventory.items[item as keyof Items] == true) {
             inventory_element.innerHTML = "";
             const item_element = document.createElement("button");
+
             item_element.innerText = item;
             item_element.classList.add("inventory-item");
+
+            if (item == inventory.selected_item) {
+                item_element.classList.add("selected-item");
+            }
+
             item_element.onclick = () => {
-                selected_item = item as keyof typeof inventory;
+                if (item == inventory.selected_item) {
+                    inventory.selected_item = null;
+                } else {
+                    inventory.selected_item = item as keyof Items;
+                }
             };
             inventory_element.appendChild(item_element);
         }
@@ -151,7 +176,7 @@ card[2].scale = new Twodo.Vector2(0.4, 0.6);
 card[2].rotation = -80;
 
 card[1].register_callback(() => {
-    inventory.card = true;
+    inventory.items.card = true;
     card[3].hidden = true;
 });
 
@@ -167,9 +192,8 @@ card_terminal[2].position = new Twodo.Vector2(5, 5);
 card_terminal[2].rotation = -60;
 
 card_terminal[1].register_callback(() => {
-    console.log(selected_item);
-    if (selected_item == "card") {
-        inventory.receipt = true;
+    if (inventory.selected_item == "card") {
+        inventory.items.receipt = true;
     }
 });
 
