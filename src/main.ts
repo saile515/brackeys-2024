@@ -242,6 +242,7 @@ const candelabra = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Trans
 
 candelabra[2].position = new Twodo.Vector2(6, -5);
 candelabra[2].scale = new Twodo.Vector2(3, 3);
+
 // ---------------- Card terminal ----------------- //
 const card_terminal_large = scene.ecs.create_entity<[CardTerminal, Twodo.Transform, Twodo.Sprite]>([
     new CardTerminal(),
@@ -252,11 +253,11 @@ const card_terminal_large = scene.ecs.create_entity<[CardTerminal, Twodo.Transfo
 card_terminal_large[1].scale = new Twodo.Vector2(10, 10);
 
 class CardTerminalButton extends Twodo.Component {
-    digit: number;
+    digit: string;
 
     constructor(digit: number) {
         super();
-        this.digit = digit;
+        this.digit = digit.toString();
     }
 }
 
@@ -270,13 +271,47 @@ for (let x = 0; x < 3; x++) {
     }
 }
 
+{
+    const card_terminal_button = scene.ecs.create_entity<
+        [CardTerminal, CardTerminalButton, Interactable, Twodo.Transform]
+    >([new CardTerminal(), new CardTerminalButton(0), new Interactable(), new Twodo.Transform()]);
+
+    card_terminal_button[3].position = new Twodo.Vector2(0, 2);
+}
+
+const card_terminal_enter = scene.ecs.create_entity<[CardTerminal, Interactable, Twodo.Transform]>([
+    new CardTerminal(),
+    new Interactable(),
+    new Twodo.Transform(),
+]);
+
+card_terminal_enter[2].position = new Twodo.Vector2(1, 2);
+
+const correct_code = "123456";
+let code = "";
+
+function submit_code() {
+    console.log(code);
+    if (code == correct_code && inventory.selected_item == "card") {
+        inventory.items.receipt = true;
+    }
+    code = "";
+}
+
 scene.ecs
     .query<[CardTerminalButton, Interactable]>([CardTerminalButton, Interactable])
     .forEach(([button, interactable]) => {
         interactable.register_callback(() => {
-            // console.log(button.digit);
+            code += button.digit;
+            if (code.length >= 6) {
+                submit_code();
+            }
         });
     });
+
+card_terminal_enter[1].register_callback(() => {
+    submit_code();
+});
 
 // ------------------ !Entities ------------------- //
 
