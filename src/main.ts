@@ -4,6 +4,7 @@ import * as Twodo from "twodo";
 class Backroom extends Twodo.Component {}
 class Frontroom extends Twodo.Component {}
 class CardTerminal extends Twodo.Component {}
+class Candelabra extends Twodo.Component {}
 
 // Utility
 class Interactable extends Twodo.Component {
@@ -243,6 +244,10 @@ const candelabra = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Trans
 candelabra[2].position = new Twodo.Vector2(6, -5);
 candelabra[2].scale = new Twodo.Vector2(3, 3);
 
+candelabra[1].register_callback(() => {
+    show_view(Candelabra);
+});
+
 // ---------------- Card terminal ----------------- //
 const card_terminal_large = scene.ecs.create_entity<[CardTerminal, Twodo.Transform, Twodo.Sprite]>([
     new CardTerminal(),
@@ -312,6 +317,36 @@ scene.ecs
 card_terminal_enter[1].register_callback(() => {
     submit_code();
 });
+
+// ------------------ Candelabra ------------------ //
+const candelabra_large = scene.ecs.create_entity<[Candelabra, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    new Candelabra(),
+    new Interactable(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./candelabra.png"),
+]);
+
+candelabra_large[2].scale = new Twodo.Vector2(10, 10);
+
+const candle_positions = [
+    new Twodo.Vector2(-2, 0),
+    new Twodo.Vector2(-1, 0),
+    new Twodo.Vector2(0, 0),
+    new Twodo.Vector2(1, 0),
+    new Twodo.Vector2(2, 0),
+    new Twodo.Vector2(3, 0),
+];
+
+for (let i = 0; i < candle_positions.length; i++) {
+    const candle = scene.ecs.create_entity<[Candelabra, Interactable, Twodo.Transform, Twodo.Sprite]>([
+        new Candelabra(),
+        new Interactable(),
+        new Twodo.Transform(),
+        new Twodo.Sprite("./candle.png"),
+    ]);
+
+    candle[2].position = candle_positions[i];
+}
 
 // ------------------ !Entities ------------------- //
 
