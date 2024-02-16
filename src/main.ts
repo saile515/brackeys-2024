@@ -5,6 +5,8 @@ class Backroom extends Twodo.Component {}
 class Frontroom extends Twodo.Component {}
 class CardTerminal extends Twodo.Component {}
 class Candelabra extends Twodo.Component {}
+class Saw extends Twodo.Component {}
+class Painting extends Twodo.Component {}
 
 // Utility
 class Interactable extends Twodo.Component {
@@ -48,6 +50,12 @@ function show_view(view: new () => Twodo.Component) {
     } else {
         exit_view.classList.remove("hidden");
     }
+
+    if (view == Candelabra) {
+        scene.ecs.query<[Candle, Twodo.Sprite]>([Candle, Twodo.Sprite]).forEach(([candle, sprite]) => {
+            sprite.hidden = !candles[candle.index];
+        });
+    }
 }
 
 const exit_view = document.getElementById("exit_view")!;
@@ -68,7 +76,15 @@ scene.active_camera = camera;
 
 // Inventory
 
-type Items = { card: boolean; receipt: boolean; tape: boolean; stick: boolean; screwdriver: boolean; key: boolean };
+type Items = {
+    card: boolean;
+    receipt: boolean;
+    tape: boolean;
+    stick: boolean;
+    screwdriver: boolean;
+    key: boolean;
+    blueprint: boolean;
+};
 
 const inventory_target: {
     items: Items;
@@ -81,6 +97,7 @@ const inventory_target: {
         stick: false,
         screwdriver: false,
         key: false,
+        blueprint: false,
     },
     selected_item: null,
 };
@@ -136,7 +153,7 @@ inventory_callbacks.push(() => {
                     inventory.selected_item = item as keyof Items;
 
                     // Show item preview if item is previewable
-                    if (item == "receipt") {
+                    if (item == "receipt" || item == "blueprint") {
                         const item_preview = document.createElement("div");
                         const item_image = document.createElement("img");
 
@@ -209,9 +226,8 @@ const card = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, 
     new Twodo.Sprite("./card.png"),
 ]);
 
-card[2].position = new Twodo.Vector2(-4, -5.5);
+card[2].position = new Twodo.Vector2(-2, -5.5);
 card[2].scale = new Twodo.Vector2(0.4, 0.6);
-card[2].rotation = -80;
 
 card[1].register_callback(() => {
     inventory.items.card = true;
@@ -223,11 +239,10 @@ const card_terminal = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Tr
     new Frontroom(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./card-terminal.jpg"),
+    new Twodo.Sprite("./card-terminal.png"),
 ]);
 
-card_terminal[2].position = new Twodo.Vector2(5, 5);
-card_terminal[2].rotation = -60;
+card_terminal[2].position = new Twodo.Vector2(9, -5);
 
 card_terminal[1].register_callback(() => {
     show_view(CardTerminal);
@@ -241,21 +256,68 @@ const candelabra = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Trans
     new Twodo.Sprite("./candelabra.png"),
 ]);
 
-candelabra[2].position = new Twodo.Vector2(6, -5);
+candelabra[2].position = new Twodo.Vector2(5, -5);
 candelabra[2].scale = new Twodo.Vector2(3, 3);
 
 candelabra[1].register_callback(() => {
     show_view(Candelabra);
 });
 
+// Cable
+const cable = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    new Frontroom(),
+    new Interactable(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./cable.png"),
+]);
+
+cable[2].position = new Twodo.Vector2(-8.1, -5);
+cable[2].scale = new Twodo.Vector2(2, 1);
+
+cable[1].register_callback(() => {
+    if (inventory.selected_item == "tape") {
+        cable[3].src = "cable-fixed.png";
+    }
+});
+
+// Saw
+const saw = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    new Frontroom(),
+    new Interactable(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./saw.png"),
+]);
+
+saw[2].position = new Twodo.Vector2(-6, -4);
+saw[2].scale = new Twodo.Vector2(4, 4);
+
+saw[1].register_callback(() => {
+    show_view(Saw);
+});
+
+// Painting
+const painting = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    new Frontroom(),
+    new Interactable(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./painting.png"),
+]);
+
+painting[2].position = new Twodo.Vector2(5, 2);
+painting[2].scale = new Twodo.Vector2(3, 2);
+
+painting[1].register_callback(() => {
+    show_view(Painting);
+});
+
 // ---------------- Card terminal ----------------- //
 const card_terminal_large = scene.ecs.create_entity<[CardTerminal, Twodo.Transform, Twodo.Sprite]>([
     new CardTerminal(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./card_terminal_large.png"),
+    new Twodo.Sprite("./card-terminal-large.webp"),
 ]);
 
-card_terminal_large[1].scale = new Twodo.Vector2(10, 10);
+card_terminal_large[1].scale = new Twodo.Vector2(16, 9);
 
 class CardTerminalButton extends Twodo.Component {
     digit: string;
@@ -272,7 +334,7 @@ for (let x = 0; x < 3; x++) {
             [CardTerminal, CardTerminalButton, Interactable, Twodo.Transform]
         >([new CardTerminal(), new CardTerminalButton((2 - y) * 3 + x + 1), new Interactable(), new Twodo.Transform()]);
 
-        card_terminal_button[3].position = new Twodo.Vector2(x - 1, y - 1);
+        card_terminal_button[3].position = new Twodo.Vector2(x - 1, y - 1.9);
     }
 }
 
@@ -281,7 +343,7 @@ for (let x = 0; x < 3; x++) {
         [CardTerminal, CardTerminalButton, Interactable, Twodo.Transform]
     >([new CardTerminal(), new CardTerminalButton(0), new Interactable(), new Twodo.Transform()]);
 
-    card_terminal_button[3].position = new Twodo.Vector2(0, 2);
+    card_terminal_button[3].position = new Twodo.Vector2(0, -3);
 }
 
 const card_terminal_enter = scene.ecs.create_entity<[CardTerminal, Interactable, Twodo.Transform]>([
@@ -290,7 +352,7 @@ const card_terminal_enter = scene.ecs.create_entity<[CardTerminal, Interactable,
     new Twodo.Transform(),
 ]);
 
-card_terminal_enter[2].position = new Twodo.Vector2(1, 2);
+card_terminal_enter[2].position = new Twodo.Vector2(1, -3);
 
 const correct_code = "123456";
 let code = "";
@@ -307,10 +369,10 @@ scene.ecs
     .query<[CardTerminalButton, Interactable]>([CardTerminalButton, Interactable])
     .forEach(([button, interactable]) => {
         interactable.register_callback(() => {
-            code += button.digit;
             if (code.length >= 6) {
-                submit_code();
+                return;
             }
+            code += button.digit;
         });
     });
 
@@ -319,6 +381,15 @@ card_terminal_enter[1].register_callback(() => {
 });
 
 // ------------------ Candelabra ------------------ //
+class Candle extends Twodo.Component {
+    index: number;
+
+    constructor(index: number) {
+        super();
+        this.index = index;
+    }
+}
+
 const candelabra_large = scene.ecs.create_entity<[Candelabra, Interactable, Twodo.Transform, Twodo.Sprite]>([
     new Candelabra(),
     new Interactable(),
@@ -329,6 +400,7 @@ const candelabra_large = scene.ecs.create_entity<[Candelabra, Interactable, Twod
 candelabra_large[2].scale = new Twodo.Vector2(10, 10);
 
 const candle_positions = [
+    new Twodo.Vector2(-3, 0),
     new Twodo.Vector2(-2, 0),
     new Twodo.Vector2(-1, 0),
     new Twodo.Vector2(0, 0),
@@ -337,16 +409,47 @@ const candle_positions = [
     new Twodo.Vector2(3, 0),
 ];
 
+const correct_candles = [true, false, true, false, true, false, true];
+const candles = [false, false, false, false, false, false, false];
+
 for (let i = 0; i < candle_positions.length; i++) {
-    const candle = scene.ecs.create_entity<[Candelabra, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    const candle = scene.ecs.create_entity<[Candelabra, Candle, Interactable, Twodo.Transform, Twodo.Sprite]>([
         new Candelabra(),
+        new Candle(i),
         new Interactable(),
         new Twodo.Transform(),
         new Twodo.Sprite("./candle.png"),
     ]);
 
-    candle[2].position = candle_positions[i];
+    candle[3].position = candle_positions[i];
+
+    candle[2].register_callback(() => {
+        candles[i] = !candles[i];
+        candle[4].hidden = !candles[i];
+
+        if (candles.toString() == correct_candles.toString()) {
+            inventory.items.tape = true;
+        }
+    });
 }
+
+// --------------------- Saw ---------------------- //
+const saw_large = scene.ecs.create_entity<[Saw, Twodo.Transform, Twodo.Sprite]>([
+    new Saw(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./saw.png"),
+]);
+
+saw_large[1].scale = new Twodo.Vector2(10, 10);
+
+// ------------------- Painting ------------------- //
+const painting_large = scene.ecs.create_entity<[Painting, Twodo.Transform, Twodo.Sprite]>([
+    new Painting(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./painting.png"),
+]);
+
+painting_large[1].scale = new Twodo.Vector2(15, 10);
 
 // ------------------ !Entities ------------------- //
 
