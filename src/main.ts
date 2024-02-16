@@ -83,7 +83,6 @@ type Items = {
     stick: boolean;
     screwdriver: boolean;
     key: boolean;
-    blueprint: boolean;
 };
 
 const inventory_target: {
@@ -97,7 +96,6 @@ const inventory_target: {
         stick: false,
         screwdriver: false,
         key: false,
-        blueprint: false,
     },
     selected_item: null,
 };
@@ -153,7 +151,7 @@ inventory_callbacks.push(() => {
                     inventory.selected_item = item as keyof Items;
 
                     // Show item preview if item is previewable
-                    if (item == "receipt" || item == "blueprint") {
+                    if (item == "receipt") {
                         const item_preview = document.createElement("div");
                         const item_image = document.createElement("img");
 
@@ -257,7 +255,7 @@ const candelabra = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Trans
 ]);
 
 candelabra[2].position = new Twodo.Vector2(5, -5);
-candelabra[2].scale = new Twodo.Vector2(3, 3);
+candelabra[2].scale = new Twodo.Vector2(3.2, 1.8);
 
 candelabra[1].register_callback(() => {
     show_view(Candelabra);
@@ -271,12 +269,15 @@ const cable = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform,
     new Twodo.Sprite("./cable.png"),
 ]);
 
+let cable_fixed = false;
+
 cable[2].position = new Twodo.Vector2(-8.1, -5);
 cable[2].scale = new Twodo.Vector2(2, 1);
 
 cable[1].register_callback(() => {
     if (inventory.selected_item == "tape") {
         cable[3].src = "cable-fixed.png";
+        cable_fixed = true;
     }
 });
 
@@ -314,12 +315,12 @@ painting[1].register_callback(() => {
 const card_terminal_large = scene.ecs.create_entity<[CardTerminal, Twodo.Transform, Twodo.Sprite]>([
     new CardTerminal(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./card-terminal-large.webp"),
+    new Twodo.Sprite("./card-terminal-large.png"),
 ]);
 
 card_terminal_large[1].scale = new Twodo.Vector2(16, 9);
 
-class CardTerminalButton extends Twodo.Component {
+class Button extends Twodo.Component {
     digit: string;
 
     constructor(digit: number) {
@@ -330,18 +331,24 @@ class CardTerminalButton extends Twodo.Component {
 
 for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
-        const card_terminal_button = scene.ecs.create_entity<
-            [CardTerminal, CardTerminalButton, Interactable, Twodo.Transform]
-        >([new CardTerminal(), new CardTerminalButton((2 - y) * 3 + x + 1), new Interactable(), new Twodo.Transform()]);
+        const card_terminal_button = scene.ecs.create_entity<[CardTerminal, Button, Interactable, Twodo.Transform]>([
+            new CardTerminal(),
+            new Button((2 - y) * 3 + x + 1),
+            new Interactable(),
+            new Twodo.Transform(),
+        ]);
 
         card_terminal_button[3].position = new Twodo.Vector2(x - 1, y - 1.9);
     }
 }
 
 {
-    const card_terminal_button = scene.ecs.create_entity<
-        [CardTerminal, CardTerminalButton, Interactable, Twodo.Transform]
-    >([new CardTerminal(), new CardTerminalButton(0), new Interactable(), new Twodo.Transform()]);
+    const card_terminal_button = scene.ecs.create_entity<[CardTerminal, Button, Interactable, Twodo.Transform]>([
+        new CardTerminal(),
+        new Button(0),
+        new Interactable(),
+        new Twodo.Transform(),
+    ]);
 
     card_terminal_button[3].position = new Twodo.Vector2(0, -3);
 }
@@ -358,23 +365,20 @@ const correct_code = "123456";
 let code = "";
 
 function submit_code() {
-    console.log(code);
     if (code == correct_code && inventory.selected_item == "card") {
         inventory.items.receipt = true;
     }
     code = "";
 }
 
-scene.ecs
-    .query<[CardTerminalButton, Interactable]>([CardTerminalButton, Interactable])
-    .forEach(([button, interactable]) => {
-        interactable.register_callback(() => {
-            if (code.length >= 6) {
-                return;
-            }
-            code += button.digit;
-        });
+scene.ecs.query<[Button, Interactable]>([Button, Interactable]).forEach(([button, interactable]) => {
+    interactable.register_callback(() => {
+        if (code.length >= 6) {
+            return;
+        }
+        code += button.digit;
     });
+});
 
 card_terminal_enter[1].register_callback(() => {
     submit_code();
@@ -397,20 +401,20 @@ const candelabra_large = scene.ecs.create_entity<[Candelabra, Interactable, Twod
     new Twodo.Sprite("./candelabra.png"),
 ]);
 
-candelabra_large[2].scale = new Twodo.Vector2(10, 10);
+candelabra_large[2].scale = new Twodo.Vector2(16, 9);
 
 const candle_positions = [
-    new Twodo.Vector2(-3, 0),
-    new Twodo.Vector2(-2, 0),
-    new Twodo.Vector2(-1, 0),
-    new Twodo.Vector2(0, 0),
-    new Twodo.Vector2(1, 0),
-    new Twodo.Vector2(2, 0),
-    new Twodo.Vector2(3, 0),
+    new Twodo.Vector2(-3.6, 1.7),
+    new Twodo.Vector2(-2.46, 2.21),
+    new Twodo.Vector2(-1.22, 2.7),
+    new Twodo.Vector2(0, 3.22),
+    new Twodo.Vector2(1.15, 2.7),
+    new Twodo.Vector2(2.3, 2.24),
+    new Twodo.Vector2(3.5, 1.75),
 ];
 
-const correct_candles = [true, false, true, false, true, false, true];
-const candles = [false, false, false, false, false, false, false];
+const correct_candles = [true, false, true, false, true, true, true];
+const candles = [true, false, false, true, true, false, false];
 
 for (let i = 0; i < candle_positions.length; i++) {
     const candle = scene.ecs.create_entity<[Candelabra, Candle, Interactable, Twodo.Transform, Twodo.Sprite]>([
@@ -422,6 +426,7 @@ for (let i = 0; i < candle_positions.length; i++) {
     ]);
 
     candle[3].position = candle_positions[i];
+    candle[3].scale = new Twodo.Vector2(1.1, 1.3);
 
     candle[2].register_callback(() => {
         candles[i] = !candles[i];
@@ -437,10 +442,48 @@ for (let i = 0; i < candle_positions.length; i++) {
 const saw_large = scene.ecs.create_entity<[Saw, Twodo.Transform, Twodo.Sprite]>([
     new Saw(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./saw.png"),
+    new Twodo.Sprite("./saw-large.png"),
 ]);
 
-saw_large[1].scale = new Twodo.Vector2(10, 10);
+saw_large[1].scale = new Twodo.Vector2(32, 18);
+
+const saw_button_positions = [
+    new Twodo.Vector2(2.3, 4.5),
+    new Twodo.Vector2(5.8, 4.3),
+    new Twodo.Vector2(4.3, 1.8),
+    new Twodo.Vector2(7.9, 2),
+    new Twodo.Vector2(3.5, -1.1),
+    new Twodo.Vector2(7.4, -0.9),
+];
+
+let sequence = "";
+const correct_sequence = "01234567";
+
+saw_button_positions.forEach((position, index) => {
+    const button = scene.ecs.create_entity<[Saw, Interactable, Twodo.Transform, Twodo.Sprite]>([
+        new Saw(),
+        new Interactable(),
+        new Twodo.Transform(),
+        new Twodo.Sprite("./card.png"),
+    ]);
+
+    button[2].position = position;
+    button[2].scale = new Twodo.Vector2(2.5, 2.5);
+
+    button[1].register_callback(() => {
+        if (!cable_fixed) {
+            return;
+        }
+
+        sequence += index;
+        if (sequence.length >= 8) {
+            if (sequence == correct_sequence) {
+                inventory.items.stick = true;
+            }
+            sequence = "";
+        }
+    });
+});
 
 // ------------------- Painting ------------------- //
 const painting_large = scene.ecs.create_entity<[Painting, Twodo.Transform, Twodo.Sprite]>([
