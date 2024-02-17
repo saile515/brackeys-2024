@@ -1612,6 +1612,11 @@ ts-interface-checker@^0.1.9:
   resolved "https://registry.yarnpkg.com/ts-interface-checker/-/ts-interface-checker-0.1.13.tgz#784fd3d679722bc103b1b4b8030bcddb5db2a699"
   integrity sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==
 
+twodo@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/twodo/-/twodo-0.0.7.tgz#0758826679251263d13ef8f8d5717254c3dff21d"
+  integrity sha512-CAsoL9I24E7lF9xOuufuIRQSN+FQ0G5ZXoCkvu+qHWaVr7epIdupgE123bpKAsvXsnAI7eDJrcSDlIxpUF4gKw==
+
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/type-check/-/type-check-0.4.0.tgz#07b8203bfa7056c0657050e3ccd2c37730bab8f1"

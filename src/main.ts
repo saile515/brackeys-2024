@@ -46,6 +46,9 @@ function show_view(view: new () => Twodo.Component) {
     });
 
     if (view == Frontroom) {
+        if (screws_left == 0) {
+            painting[3].hidden = true;
+        }
         exit_view.classList.add("hidden");
     } else {
         exit_view.classList.remove("hidden");
@@ -604,6 +607,7 @@ let safe_code = "";
 function submit_safe_code() {
     if (safe_code == correct_safe_code) {
         inventory.items.key = true;
+        safe[2].src = "./open-safe.webp";
         grab.play();
     } else {
         error.play();
@@ -637,7 +641,7 @@ safe_enter[1].register_callback(() => {
 const painting_large = scene.ecs.create_entity<[Painting, Twodo.Transform, Twodo.Sprite]>([
     new Painting(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./painting.webp"),
+    new Twodo.Sprite("./painting-large.webp"),
 ]);
 
 painting_large[1].scale = new Twodo.Vector2(15, 10);
