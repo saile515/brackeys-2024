@@ -57,6 +57,10 @@ function show_view(view: new () => Twodo.Component) {
         });
     }
 
+    if (view == Backroom && inventory.items.screwdriver) {
+        screwdriver[2].hidden = true;
+    }
+
     code = "";
     safe_code = "";
     sequence = "";
@@ -192,6 +196,14 @@ const backroom = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprit
 
 backroom[1].depth = 1;
 backroom[1].scale = new Twodo.Vector2(32, 18);
+
+const screwdriver = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprite]>([
+    new Backroom(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./screwdriver.webp"),
+]);
+
+screwdriver[1].scale = new Twodo.Vector2(1.41 * 1.3, 0.44 * 1.3);
 
 // Key hole
 const key_hole = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprite]>([
@@ -695,6 +707,11 @@ function update() {
         key_hole[1].position = new Twodo.Vector2(-scene.input.mouse.position.x / 2, scene.input.mouse.position.y / 2);
 
         backroom[1].position = new Twodo.Vector2(scene.input.mouse.position.x * 8, -scene.input.mouse.position.y * 4);
+
+        screwdriver[1].position = new Twodo.Vector2(
+            scene.input.mouse.position.x * 8,
+            -scene.input.mouse.position.y * 4 - 6,
+        );
     }
 
     requestAnimationFrame(update);
