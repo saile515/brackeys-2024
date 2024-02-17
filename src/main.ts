@@ -194,7 +194,7 @@ inventory_callbacks.push(() => {
 const backroom = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprite]>([
     new Backroom(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./backroom.jpg"),
+    new Twodo.Sprite("./backroom.webp"),
 ]);
 
 backroom[1].depth = 1;
@@ -212,7 +212,7 @@ screwdriver[1].scale = new Twodo.Vector2(1.41 * 1.3, 0.44 * 1.3);
 const key_hole = scene.ecs.create_entity<[Backroom, Twodo.Transform, Twodo.Sprite]>([
     new Backroom(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./keyhole.png"),
+    new Twodo.Sprite("./keyhole.webp"),
 ]);
 
 key_hole[1].depth = 0;
@@ -241,6 +241,14 @@ door[2].scale = new Twodo.Vector2(2.95 * 1.3, 5.21 * 1.3);
 door[1].register_callback(() => {
     if (inventory.selected_item == "key") {
         scene.ecs.delete_entity(door[0].parent!);
+        setTimeout(() => {
+            const congrat = scene.ecs.create_entity<[Twodo.Transform, Twodo.Sprite]>([
+                new Twodo.Transform(),
+                new Twodo.Sprite("./congrat.webp"),
+            ]);
+
+            congrat[0].scale = new Twodo.Vector2(19.2 * 1.3, 10.8 * 1.3);
+        }, 2000);
     } else {
         show_view(Backroom);
     }
@@ -710,11 +718,11 @@ function update() {
     if (!key_hole[2].hidden) {
         key_hole[1].position = new Twodo.Vector2(-scene.input.mouse.position.x / 2, scene.input.mouse.position.y / 2);
 
-        backroom[1].position = new Twodo.Vector2(scene.input.mouse.position.x * 8, -scene.input.mouse.position.y * 4);
+        backroom[1].position = new Twodo.Vector2(scene.input.mouse.position.x * 13, -scene.input.mouse.position.y * 5);
 
         screwdriver[1].position = new Twodo.Vector2(
-            scene.input.mouse.position.x * 8,
-            -scene.input.mouse.position.y * 4 - 6,
+            scene.input.mouse.position.x * 13,
+            -scene.input.mouse.position.y * 5 - 7,
         );
     }
 
