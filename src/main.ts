@@ -159,7 +159,7 @@ inventory_callbacks.push(() => {
                         const item_preview = document.createElement("div");
                         const item_image = document.createElement("img");
 
-                        item_image.src = `./${item}.png`;
+                        item_image.src = `./${item}.webp`;
 
                         item_preview.appendChild(item_image);
 
@@ -203,18 +203,18 @@ const front_room = scene.ecs.create_entity<[Frontroom, Twodo.Transform, Twodo.Sp
     new Twodo.Sprite("./front-room.webp"),
 ]);
 
-front_room[1].scale = new Twodo.Vector2(26, 14);
+front_room[1].scale = new Twodo.Vector2(19.2 * 1.3, 10.8 * 1.3);
 
 // Door
 const door = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
     new Frontroom(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./door.png"),
+    new Twodo.Sprite("./door.webp"),
 ]);
 
-door[2].position = new Twodo.Vector2(0, -0.7);
-door[2].scale = new Twodo.Vector2(6, 8);
+door[2].position = new Twodo.Vector2(0.88, 0.1);
+door[2].scale = new Twodo.Vector2(2.95 * 1.3, 5.21 * 1.3);
 
 door[1].register_callback(() => {
     if (inventory.selected_item == "key") {
@@ -229,11 +229,11 @@ const card = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, 
     new Frontroom(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./card.png"),
+    new Twodo.Sprite("./card.webp"),
 ]);
 
-card[2].position = new Twodo.Vector2(-2, -5.5);
-card[2].scale = new Twodo.Vector2(0.4, 0.6);
+card[2].position = new Twodo.Vector2(-1, -4.2);
+card[2].scale = new Twodo.Vector2(0.73 * 1.3, 0.36 * 1.3);
 
 card[1].register_callback(() => {
     inventory.items.card = true;
@@ -246,10 +246,11 @@ const card_terminal = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Tr
     new Frontroom(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./card-terminal.png"),
+    new Twodo.Sprite("./card-terminal.webp"),
 ]);
 
-card_terminal[2].position = new Twodo.Vector2(9, -5);
+card_terminal[2].position = new Twodo.Vector2(-6.3, -3.5);
+card_terminal[2].scale = new Twodo.Vector2(0.8 * 1.3, 0.4 * 1.3);
 
 card_terminal[1].register_callback(() => {
     show_view(CardTerminal);
@@ -260,15 +261,25 @@ const candelabra = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Trans
     new Frontroom(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./candelabra.png"),
+    new Twodo.Sprite("./candelabra.webp"),
 ]);
 
-candelabra[2].position = new Twodo.Vector2(5, -5);
-candelabra[2].scale = new Twodo.Vector2(3.2, 1.8);
+candelabra[2].position = new Twodo.Vector2(-4, -1.2);
+candelabra[2].scale = new Twodo.Vector2(1.22 * 1.3, 1.12 * 1.3);
 
 candelabra[1].register_callback(() => {
     show_view(Candelabra);
 });
+
+// Chair
+const chair = scene.ecs.create_entity<[Frontroom, Twodo.Transform, Twodo.Sprite]>([
+    new Frontroom(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./chair.webp"),
+]);
+
+chair[1].position = new Twodo.Vector2(8.3, -2.5);
+chair[1].scale = new Twodo.Vector2(2.79 * 1.3, 4.29 * 1.3);
 
 // Cable
 const cable = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, Twodo.Sprite]>([
@@ -280,8 +291,8 @@ const cable = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform,
 
 let cable_fixed = false;
 
-cable[2].position = new Twodo.Vector2(-8.1, -5);
-cable[2].scale = new Twodo.Vector2(2, 1);
+cable[2].position = new Twodo.Vector2(11.3, -4.45);
+cable[2].scale = new Twodo.Vector2(1.52 * 1.3, 2.23 * 1.3);
 
 cable[1].register_callback(() => {
     if (inventory.selected_item == "tape") {
@@ -295,11 +306,11 @@ const saw = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform, T
     new Frontroom(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./saw.png"),
+    new Twodo.Sprite("./saw.webp"),
 ]);
 
-saw[2].position = new Twodo.Vector2(-6, -4);
-saw[2].scale = new Twodo.Vector2(4, 4);
+saw[2].position = new Twodo.Vector2(9.7, -4.7);
+saw[2].scale = new Twodo.Vector2(1.06 * 1.3, 0.8 * 1.3);
 
 saw[1].register_callback(() => {
     show_view(Saw);
@@ -310,11 +321,11 @@ const painting = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transfo
     new Frontroom(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./painting.png"),
+    new Twodo.Sprite("./painting.webp"),
 ]);
 
-painting[2].position = new Twodo.Vector2(5, 2);
-painting[2].scale = new Twodo.Vector2(3, 2);
+painting[2].position = new Twodo.Vector2(-3.4, 1.4);
+painting[2].scale = new Twodo.Vector2(2.57 * 1.3, 2.32 * 1.3);
 
 painting[1].register_callback(() => {
     show_view(Painting);
@@ -327,8 +338,8 @@ const under_door = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Trans
     new Twodo.Transform(),
 ]);
 
-under_door[2].position = new Twodo.Vector2(0, -4.5);
-under_door[2].scale = new Twodo.Vector2(6, 2);
+under_door[2].position = new Twodo.Vector2(0.88, -4);
+under_door[2].scale = new Twodo.Vector2(2.95 * 1.3, 2);
 
 under_door[1].register_callback(() => {
     if (inventory.selected_item == "stick") {
@@ -341,7 +352,7 @@ under_door[1].register_callback(() => {
 const card_terminal_large = scene.ecs.create_entity<[CardTerminal, Twodo.Transform, Twodo.Sprite]>([
     new CardTerminal(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./card-terminal-large.png"),
+    new Twodo.Sprite("./card-terminal-large.webp"),
 ]);
 
 card_terminal_large[1].scale = new Twodo.Vector2(16, 9);
@@ -430,7 +441,7 @@ const candelabra_large = scene.ecs.create_entity<[Candelabra, Interactable, Twod
     new Candelabra(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./candelabra.png"),
+    new Twodo.Sprite("./candelabra-large.webp"),
 ]);
 
 candelabra_large[2].scale = new Twodo.Vector2(16, 9);
@@ -454,7 +465,7 @@ for (let i = 0; i < candle_positions.length; i++) {
         new Candle(i),
         new Interactable(),
         new Twodo.Transform(),
-        new Twodo.Sprite("./candle.png"),
+        new Twodo.Sprite("./candle.webp"),
     ]);
 
     candle[3].position = candle_positions[i];
@@ -476,7 +487,7 @@ for (let i = 0; i < candle_positions.length; i++) {
 const saw_large = scene.ecs.create_entity<[Saw, Twodo.Transform, Twodo.Sprite]>([
     new Saw(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./saw-large.png"),
+    new Twodo.Sprite("./saw-large.webp"),
 ]);
 
 saw_large[1].scale = new Twodo.Vector2(32, 18);
@@ -514,6 +525,7 @@ saw_button_positions.forEach((position, index) => {
         if (sequence.length >= 6) {
             if (sequence == correct_sequence) {
                 inventory.items.stick = true;
+                chair[2].src = "./broken-chair.webp";
                 grab.play();
             } else {
                 error.play();
@@ -539,7 +551,7 @@ for (let x = 0; x < 3; x++) {
             new Button((2 - y) * 3 + x + 1),
             new Interactable(),
             new Twodo.Transform(),
-            new Twodo.Sprite("./card.png"),
+            new Twodo.Sprite("./card.webp"),
         ]);
 
         safe_button[3].position = new Twodo.Vector2(x / 1.5 - 1.5, y / 1.6 + 0.8);
@@ -553,7 +565,7 @@ for (let x = 0; x < 3; x++) {
         new Button(0),
         new Interactable(),
         new Twodo.Transform(),
-        new Twodo.Sprite("./card.png"),
+        new Twodo.Sprite("./card.webp"),
     ]);
 
     safe_button[3].position = new Twodo.Vector2(-0.9, 0.24);
@@ -564,7 +576,7 @@ const safe_enter = scene.ecs.create_entity<[Painting, Interactable, Twodo.Transf
     new Painting(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./card.png"),
+    new Twodo.Sprite("./card.webp"),
 ]);
 
 safe_enter[2].position = new Twodo.Vector2(-0.15, 0.24);
