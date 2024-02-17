@@ -64,6 +64,10 @@ exit_view.onclick = () => {
     show_view(Frontroom);
 };
 
+const click = new Audio("./click.wav");
+const grab = new Audio("./grab.wav");
+const error = new Audio("./error.wav");
+
 // Scene setup
 const canvas = document.getElementById("game_canvas") as HTMLCanvasElement;
 const scene = new Twodo.Scene(canvas!);
@@ -196,7 +200,7 @@ key_hole[1].scale = new Twodo.Vector2(32, 18);
 const front_room = scene.ecs.create_entity<[Frontroom, Twodo.Transform, Twodo.Sprite]>([
     new Frontroom(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./frontroom.jpg"),
+    new Twodo.Sprite("./front-room.webp"),
 ]);
 
 front_room[1].scale = new Twodo.Vector2(26, 14);
@@ -213,7 +217,11 @@ door[2].position = new Twodo.Vector2(0, -0.7);
 door[2].scale = new Twodo.Vector2(6, 8);
 
 door[1].register_callback(() => {
-    show_view(Backroom);
+    if (inventory.selected_item == "key") {
+        scene.ecs.delete_entity(door[0].parent!);
+    } else {
+        show_view(Backroom);
+    }
 });
 
 // Card
@@ -229,6 +237,7 @@ card[2].scale = new Twodo.Vector2(0.4, 0.6);
 
 card[1].register_callback(() => {
     inventory.items.card = true;
+    grab.play();
     scene.ecs.delete_entity(card[0].parent!);
 });
 
@@ -266,7 +275,7 @@ const cable = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform,
     new Frontroom(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./cable.png"),
+    new Twodo.Sprite("./broken-cable.webp"),
 ]);
 
 let cable_fixed = false;
@@ -276,7 +285,7 @@ cable[2].scale = new Twodo.Vector2(2, 1);
 
 cable[1].register_callback(() => {
     if (inventory.selected_item == "tape") {
-        cable[3].src = "cable-fixed.png";
+        cable[3].src = "fixed-cable.webp";
         cable_fixed = true;
     }
 });
@@ -309,6 +318,23 @@ painting[2].scale = new Twodo.Vector2(3, 2);
 
 painting[1].register_callback(() => {
     show_view(Painting);
+});
+
+// Under door
+const under_door = scene.ecs.create_entity<[Frontroom, Interactable, Twodo.Transform]>([
+    new Frontroom(),
+    new Interactable(),
+    new Twodo.Transform(),
+]);
+
+under_door[2].position = new Twodo.Vector2(0, -4.5);
+under_door[2].scale = new Twodo.Vector2(6, 2);
+
+under_door[1].register_callback(() => {
+    if (inventory.selected_item == "stick") {
+        inventory.items.screwdriver = true;
+        grab.play();
+    }
 });
 
 // ---------------- Card terminal ----------------- //
@@ -367,18 +393,24 @@ let code = "";
 function submit_code() {
     if (code == correct_code && inventory.selected_item == "card") {
         inventory.items.receipt = true;
+        grab.play();
+    } else {
+        error.play();
     }
     code = "";
 }
 
-scene.ecs.query<[Button, Interactable]>([Button, Interactable]).forEach(([button, interactable]) => {
-    interactable.register_callback(() => {
-        if (code.length >= 6) {
-            return;
-        }
-        code += button.digit;
+scene.ecs
+    .query<[CardTerminal, Button, Interactable]>([CardTerminal, Button, Interactable])
+    .forEach(([, button, interactable]) => {
+        interactable.register_callback(() => {
+            click.play();
+            if (code.length >= 6) {
+                return;
+            }
+            code += button.digit;
+        });
     });
-});
 
 card_terminal_enter[1].register_callback(() => {
     submit_code();
@@ -431,9 +463,11 @@ for (let i = 0; i < candle_positions.length; i++) {
     candle[2].register_callback(() => {
         candles[i] = !candles[i];
         candle[4].hidden = !candles[i];
+        click.play();
 
         if (candles.toString() == correct_candles.toString()) {
             inventory.items.tape = true;
+            grab.play();
         }
     });
 }
@@ -457,28 +491,32 @@ const saw_button_positions = [
 ];
 
 let sequence = "";
-const correct_sequence = "01234567";
+const correct_sequence = "012345";
 
 saw_button_positions.forEach((position, index) => {
-    const button = scene.ecs.create_entity<[Saw, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    const button = scene.ecs.create_entity<[Saw, Interactable, Twodo.Transform]>([
         new Saw(),
         new Interactable(),
         new Twodo.Transform(),
-        new Twodo.Sprite("./card.png"),
     ]);
 
     button[2].position = position;
     button[2].scale = new Twodo.Vector2(2.5, 2.5);
 
     button[1].register_callback(() => {
+        click.play();
+
         if (!cable_fixed) {
             return;
         }
 
         sequence += index;
-        if (sequence.length >= 8) {
+        if (sequence.length >= 6) {
             if (sequence == correct_sequence) {
                 inventory.items.stick = true;
+                grab.play();
+            } else {
+                error.play();
             }
             sequence = "";
         }
@@ -486,13 +524,126 @@ saw_button_positions.forEach((position, index) => {
 });
 
 // ------------------- Painting ------------------- //
+const safe = scene.ecs.create_entity<[Painting, Twodo.Transform, Twodo.Sprite]>([
+    new Painting(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./safe.webp"),
+]);
+
+safe[1].scale = new Twodo.Vector2(30, 16);
+
+for (let x = 0; x < 3; x++) {
+    for (let y = 0; y < 3; y++) {
+        const safe_button = scene.ecs.create_entity<[Painting, Button, Interactable, Twodo.Transform, Twodo.Sprite]>([
+            new Painting(),
+            new Button((2 - y) * 3 + x + 1),
+            new Interactable(),
+            new Twodo.Transform(),
+            new Twodo.Sprite("./card.png"),
+        ]);
+
+        safe_button[3].position = new Twodo.Vector2(x / 1.5 - 1.5, y / 1.6 + 0.8);
+        safe_button[3].scale = new Twodo.Vector2(0.7, 0.7);
+    }
+}
+
+{
+    const safe_button = scene.ecs.create_entity<[Painting, Button, Interactable, Twodo.Transform, Twodo.Sprite]>([
+        new Painting(),
+        new Button(0),
+        new Interactable(),
+        new Twodo.Transform(),
+        new Twodo.Sprite("./card.png"),
+    ]);
+
+    safe_button[3].position = new Twodo.Vector2(-0.9, 0.24);
+    safe_button[3].scale = new Twodo.Vector2(0.7, 0.7);
+}
+
+const safe_enter = scene.ecs.create_entity<[Painting, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    new Painting(),
+    new Interactable(),
+    new Twodo.Transform(),
+    new Twodo.Sprite("./card.png"),
+]);
+
+safe_enter[2].position = new Twodo.Vector2(-0.15, 0.24);
+safe_enter[2].scale = new Twodo.Vector2(0.7, 0.7);
+
+const correct_safe_code = "123456";
+let safe_code = "";
+
+function submit_safe_code() {
+    if (safe_code == correct_safe_code) {
+        inventory.items.key = true;
+        grab.play();
+    } else {
+        error.play();
+    }
+    safe_code = "";
+}
+
+scene.ecs
+    .query<[Painting, Button, Interactable]>([Painting, Button, Interactable])
+    .forEach(([, button, interactable]) => {
+        interactable.register_callback(() => {
+            if (screws_left != 0) {
+                return;
+            }
+
+            click.play();
+
+            if (safe_code.length >= 6) {
+                return;
+            }
+
+            safe_code += button.digit;
+        });
+    });
+
+safe_enter[1].register_callback(() => {
+    click.play();
+    submit_safe_code();
+});
+
 const painting_large = scene.ecs.create_entity<[Painting, Twodo.Transform, Twodo.Sprite]>([
     new Painting(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./painting.png"),
+    new Twodo.Sprite("./painting.webp"),
 ]);
 
 painting_large[1].scale = new Twodo.Vector2(15, 10);
+
+const screw_positions = [
+    new Twodo.Vector2(-6.6, -3.9),
+    new Twodo.Vector2(6.1, -4),
+    new Twodo.Vector2(6.5, 3.8),
+    new Twodo.Vector2(-6.3, 4.1),
+];
+
+let screws_left = 4;
+
+screw_positions.forEach((position) => {
+    const screw = scene.ecs.create_entity<[Painting, Interactable, Twodo.Transform, Twodo.Sprite]>([
+        new Painting(),
+        new Interactable(),
+        new Twodo.Transform(),
+        new Twodo.Sprite("./screw.webp"),
+    ]);
+
+    screw[2].position = position;
+
+    screw[1].register_callback(() => {
+        if (inventory.selected_item == "screwdriver") {
+            scene.ecs.delete_entity(screw[0].parent!);
+            screws_left--;
+            click.play();
+            if (screws_left == 0) {
+                scene.ecs.delete_entity(painting_large[0].parent!);
+            }
+        }
+    });
+});
 
 // ------------------ !Entities ------------------- //
 
