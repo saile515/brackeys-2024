@@ -56,6 +56,10 @@ function show_view(view: new () => Twodo.Component) {
             sprite.hidden = !candles[candle.index];
         });
     }
+
+    code = "";
+    safe_code = "";
+    sequence = "";
 }
 
 const exit_view = document.getElementById("exit_view")!;
@@ -135,7 +139,10 @@ inventory_callbacks.push(() => {
         if (inventory.items[item as keyof Items] == true) {
             const item_element = document.createElement("button");
 
-            item_element.innerText = item;
+            item_element.style.backgroundImage = `url('./${item}.webp')`;
+            item_element.style.backgroundSize = "contain";
+            item_element.style.backgroundRepeat = "no-repeat";
+            item_element.style.backgroundPosition = "center";
             item_element.classList.add("inventory-item");
 
             if (item == inventory.selected_item) {
@@ -398,7 +405,7 @@ const card_terminal_enter = scene.ecs.create_entity<[CardTerminal, Interactable,
 
 card_terminal_enter[2].position = new Twodo.Vector2(1, -3);
 
-const correct_code = "123456";
+const correct_code = "2429";
 let code = "";
 
 function submit_code() {
@@ -416,7 +423,7 @@ scene.ecs
     .forEach(([, button, interactable]) => {
         interactable.register_callback(() => {
             click.play();
-            if (code.length >= 6) {
+            if (code.length >= 4) {
                 return;
             }
             code += button.digit;
@@ -502,7 +509,7 @@ const saw_button_positions = [
 ];
 
 let sequence = "";
-const correct_sequence = "012345";
+const correct_sequence = "2233010154";
 
 saw_button_positions.forEach((position, index) => {
     const button = scene.ecs.create_entity<[Saw, Interactable, Twodo.Transform]>([
@@ -522,7 +529,7 @@ saw_button_positions.forEach((position, index) => {
         }
 
         sequence += index;
-        if (sequence.length >= 6) {
+        if (sequence.length >= 10) {
             if (sequence == correct_sequence) {
                 inventory.items.stick = true;
                 chair[2].src = "./broken-chair.webp";
@@ -546,12 +553,11 @@ safe[1].scale = new Twodo.Vector2(30, 16);
 
 for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
-        const safe_button = scene.ecs.create_entity<[Painting, Button, Interactable, Twodo.Transform, Twodo.Sprite]>([
+        const safe_button = scene.ecs.create_entity<[Painting, Button, Interactable, Twodo.Transform]>([
             new Painting(),
             new Button((2 - y) * 3 + x + 1),
             new Interactable(),
             new Twodo.Transform(),
-            new Twodo.Sprite("./card.webp"),
         ]);
 
         safe_button[3].position = new Twodo.Vector2(x / 1.5 - 1.5, y / 1.6 + 0.8);
@@ -560,29 +566,27 @@ for (let x = 0; x < 3; x++) {
 }
 
 {
-    const safe_button = scene.ecs.create_entity<[Painting, Button, Interactable, Twodo.Transform, Twodo.Sprite]>([
+    const safe_button = scene.ecs.create_entity<[Painting, Button, Interactable, Twodo.Transform]>([
         new Painting(),
         new Button(0),
         new Interactable(),
         new Twodo.Transform(),
-        new Twodo.Sprite("./card.webp"),
     ]);
 
     safe_button[3].position = new Twodo.Vector2(-0.9, 0.24);
     safe_button[3].scale = new Twodo.Vector2(0.7, 0.7);
 }
 
-const safe_enter = scene.ecs.create_entity<[Painting, Interactable, Twodo.Transform, Twodo.Sprite]>([
+const safe_enter = scene.ecs.create_entity<[Painting, Interactable, Twodo.Transform]>([
     new Painting(),
     new Interactable(),
     new Twodo.Transform(),
-    new Twodo.Sprite("./card.webp"),
 ]);
 
 safe_enter[2].position = new Twodo.Vector2(-0.15, 0.24);
 safe_enter[2].scale = new Twodo.Vector2(0.7, 0.7);
 
-const correct_safe_code = "123456";
+const correct_safe_code = "190655";
 let safe_code = "";
 
 function submit_safe_code() {
